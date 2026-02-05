@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Equity Buyback Scenario Calculator</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f6f7f9;
+      padding: 40px;
+    }
+
+    .calculator {
+      max-width: 760px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 36px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-top: 22px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .subtext {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .results {
+      background: #f1f3f6;
+      padding: 24px;
+      border-radius: 10px;
+      margin-top: 40px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      font-size: 16px;
+    }
+
+    .row strong {
+      font-weight: 700;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #666;
+      margin-top: 24px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<div class="calculator">
+  <h1>Equity Buyback Scenario Calculator</h1>
+
+  <h2>Company Valuation Assumptions</h2>
+
+  <label>Retail / Headline Valuation ($)</label>
+  <div class="subtext">
+    What the company might be worth on paper or in a long-term exit scenario.
+  </div>
+  <input id="retailValuation" type="text" value="45,000,000">
+
+  <label>Transaction Valuation ($)</label>
+  <div class="subtext">
+    The valuation used for new capital, secondaries, or company buybacks.
+  </div>
+  <input id="transactionValuation" type="text" value="35,000,000">
+
+  <h2>Capital Injection and Loan Repayment</h2>
+
+  <label>New Capital Injected ($)</label>
+  <div class="subtext">
+    Cash coming into the company from a new investor or financing event.
+  </div>
+  <input id="newCapital" type="text" value="10,000,000">
+
+  <label>Loan Repayment Amount ($)</label>
+  <div class="subtext">
+    Debt that is paid back first before any equity buybacks occur.
+  </div>
+  <input id="loanAmount" type="text" value="3,000,000">
+
+  <h2>Optional Shareholder Liquidity</h2>
+
+  <label>How much equity do you want to sell (%)</label>
+  <div class="subtext">
+    The percentage of the company you personally want to sell back to the company.
+  </div>
+  <input id="equityToSell" type="number" value="5" step="0.1">
+
+  <div class="results">
+    <div class="row">
+      <span>Buyback Pool Available</span>
+      <strong id="buybackPool">$0</strong>
+    </div>
+
+    <div class="row">
+      <span>Price per 1% of Equity</span>
+      <strong id="pricePerPercent">$0</strong>
+    </div>
+
+    <div class="row">
+      <span>Maximum % of Company That Can Be Bought Back</span>
+      <strong id="maxBuybackPercent">0%</strong>
+    </div>
+
+    <div class="row">
+      <span>Your Cash Payout</span>
+      <strong id="payout">$0</strong>
+    </div>
+  </div>
+
+  <div class="note">
+    This calculator is illustrative only. It assumes loans are repaid first, buybacks are optional,
+    and equity is priced at the transaction valuation rather than the headline valuation.
+  </div>
+</div>
+
+<script>
+  const moneyInputs = [
+    "retailValuation",
+    "transactionValuation",
+    "newCapital",
+    "loanAmount"
+  ];
+
+  function parseMoney(value) {
+    return Number(value.replace(/,/g, ""));
+  }
+
+  function formatMoney(value) {
+    return "$" + value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  function formatInput(input) {
+    const numeric = parseMoney(input.value);
+    if (!isNaN(numeric)) {
+      input.value = numeric.toLocaleString();
+    }
+  }
+
+  function calculate() {
+    const transactionValuation = parseMoney(document.getElementById("transactionValuation").value);
+    const newCapital = parseMoney(document.getElementById("newCapital").value);
+    const loanAmount = parseMoney(document.getElementById("loanAmount").value);
+    const equityToSell = Number(document.getElementById("equityToSell").value);
+
+    const buybackPool = Math.max(newCapital - loanAmount, 0);
+    const pricePerPercent = transactionValuation / 100;
+    const maxBuybackPercent = buybackPool / pricePerPercent;
+    const payout = equityToSell * pricePerPercent;
+
+    document.getElementById("buybackPool").innerText = formatMoney(buybackPool);
+    document.getElementById("pricePerPercent").innerText = formatMoney(pricePerPercent);
+    document.getElementById("maxBuybackPercent").innerText = maxBuybackPercent.toFixed(1) + "%";
+    document.getElementById("payout").innerText = formatMoney(payout);
+  }
+
+  moneyInputs.forEach(id => {
+    const input = document.getElementById(id);
+    input.addEventListener("blur", () => formatInput(input));
+    input.addEventListener("input", calculate);
+  });
+
+  document.getElementById("equityToSell").addEventListener("input", calculate);
+
+  calculate();
+</script>
+
+</body>
+</html>
